@@ -1,63 +1,369 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login | Power Tools Bus Services</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="assets/css/styles.css" />
-  </head>
-  <body data-page="login" data-page-title="Login | Power Tools Bus Services">
-    <div class="login-shell">
-      <div class="login-visual">
-        <div class="login-overlay">
-          <div class="brand-slab">
-            <i class="bi bi-bus-front"></i>
-            <span>Power Tools Bus Services</span>
-          </div>
-          <h1>Transport operations with confidence.</h1>
-          <p>Secure passenger management, trip scheduling, and business reporting for modern intercity operations.</p>
-        </div>
-      </div>
+const DEMO_USERS = [
+  { email: 'admin@powertoolsbus.com', password: 'admin123', name: 'System Admin', role: 'Administrator' },
+  { email: 'dispatcher@powertoolsbus.com', password: 'dispatcher123', name: 'Lusaka Dispatcher', role: 'Dispatcher' },
+  { email: 'cashier@powertoolsbus.com', password: 'cashier123', name: 'Finance Cashier', role: 'Cashier' }
+];
 
-      <div class="login-form-panel">
-        <div class="login-card">
-          <div class="text-center mb-4">
-            <h2>Welcome back</h2>
-            <p class="muted">Sign in to the operational dashboard.</p>
-          </div>
-          <form id="loginForm">
-            <div class="mb-3">
-              <label for="email" class="form-label">Email address</label>
-              <input type="email" class="form-control" id="email" placeholder="admin@powertoolsbus.com" required />
-            </div>
-            <div class="mb-3">
-              <label for="password" class="form-label">Password</label>
-              <input type="password" class="form-control" id="password" placeholder="••••••••" required />
-            </div>
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="rememberMe" />
-                <label class="form-check-label" for="rememberMe">Remember me</label>
-              </div>
-              <a href="#" class="small-link">Forgot password?</a>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Login</button>
-          </form>
-          <div class="divider"><span>Or</span></div>
-          <button class="btn btn-outline-secondary w-100 mt-3">
-            <i class="bi bi-google"></i> Continue with Google
-          </button>
-        </div>
+const DEMO_DATA = {
+  buses: [
+    { registration: 'PTB-001', model: 'Mercedes Sprinter', capacity: 28, type: 'Executive', status: 'Active' },
+    { registration: 'PTB-014', model: 'Yutong Coach', capacity: 52, type: 'Intercity', status: 'Maintenance' },
+    { registration: 'PTB-022', model: 'Toyota Coaster', capacity: 22, type: 'City', status: 'Active' }
+  ],
+  routes: [
+    { code: 'LUS-NDL', from: 'Lusaka', to: 'Ndola', price: 280, duration: '6h 30m', status: 'Active' },
+    { code: 'LUS-LIV', from: 'Lusaka', to: 'Livingstone', price: 420, duration: '9h 15m', status: 'Active' },
+    { code: 'KIT-KAB', from: 'Kitwe', to: 'Kabwe', price: 260, duration: '5h 10m', status: 'Delayed' }
+  ],
+  trips: [
+    { tripId: 'TRIP-1042', route: 'Lusaka - Ndola', seats: 42, date: '2026-11-02', departure: '06:30', status: 'Scheduled' },
+    { tripId: 'TRIP-1049', route: 'Lusaka - Livingstone', seats: 36, date: '2026-11-02', departure: '09:15', status: 'Boarding' },
+    { tripId: 'TRIP-1061', route: 'Kitwe - Kabwe', seats: 24, date: '2026-11-02', departure: '13:45', status: 'Delayed' }
+  ],
+  bookings: [
+    { ref: 'PTB-1001', passenger: 'Joseph Phiri', route: 'Lusaka - Ndola', seat: 'A12', amount: 280, status: 'Confirmed' },
+    { ref: 'PTB-1002', passenger: 'Mary Chanda', route: 'Lusaka - Livingstone', seat: 'C08', amount: 420, status: 'Pending' },
+    { ref: 'PTB-1003', passenger: 'Patrick Mulenga', route: 'Kitwe - Kabwe', seat: 'D05', amount: 260, status: 'Completed' }
+  ],
+  passengers: [
+    { name: 'Joseph Phiri', phone: '+260 977 123 456', trips: 6, bookings: 9 },
+    { name: 'Mary Chanda', phone: '+260 955 812 321', trips: 4, bookings: 6 },
+    { name: 'Patrick Mulenga', phone: '+260 978 455 762', trips: 8, bookings: 11 }
+  ],
+  payments: [
+    { ref: 'PAY-9024', passenger: 'Joseph Phiri', route: 'Lusaka - Ndola', amount: 280, status: 'Paid' },
+    { ref: 'PAY-9031', passenger: 'Mary Chanda', route: 'Lusaka - Livingstone', amount: 420, status: 'Pending' },
+    { ref: 'PAY-9038', passenger: 'Patrick Mulenga', route: 'Kitwe - Kabwe', amount: 260, status: 'Paid' }
+  ],
+  tickets: [
+    { ticketId: 'TK-2213', passenger: 'Joseph Phiri', route: 'Lusaka - Ndola', status: 'Issued' },
+    { ticketId: 'TK-2214', passenger: 'Mary Chanda', route: 'Lusaka - Livingstone', status: 'Pending' },
+    { ticketId: 'TK-2215', passenger: 'Patrick Mulenga', route: 'Kitwe - Kabwe', status: 'Issued' }
+  ]
+};
+
+const getStoredUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem('pts_user') || 'null');
+  } catch (error) {
+    return null;
+  }
+};
+
+const setStoredUser = (user) => localStorage.setItem('pts_user', JSON.stringify(user));
+
+const clearStoredUser = () => {
+  localStorage.removeItem('pts_user');
+  localStorage.removeItem('pts_session');
+};
+
+const formatCurrency = (amount) => `ZMW ${Number(amount || 0).toLocaleString()}`;
+
+const renderSidebar = () => {
+  const currentPage = document.body.dataset.page || 'dashboard';
+  const navItems = [
+    ['Dashboard', 'dashboard.html', 'bi-speedometer2'],
+    ['Buses', 'buses.html', 'bi-bus-front'],
+    ['Routes', 'routes.html', 'bi-signpost-split'],
+    ['Trips', 'trips.html', 'bi-calendar3'],
+    ['Bookings', 'bookings.html', 'bi-journal-check'],
+    ['Passengers', 'passengers.html', 'bi-people'],
+    ['Payments', 'payments.html', 'bi-wallet2'],
+    ['Tickets', 'tickets.html', 'bi-receipt'],
+    ['Staff', 'staff.html', 'bi-person-badge'],
+    ['Drivers', 'drivers.html', 'bi-person-wheelchair'],
+    ['Reports', 'reports.html', 'bi-bar-chart'],
+    ['Settings', 'settings.html', 'bi-gear']
+  ];
+
+  const nav = document.getElementById('sidebar-nav');
+  if (!nav) return;
+
+  nav.innerHTML = navItems.map(([label, href, icon]) => {
+    const activeClass = href === `${currentPage}.html` || (currentPage === 'home' && href === 'dashboard.html') ? 'active' : '';
+    return `
+      <li class="nav-item">
+        <a class="nav-link ${activeClass}" href="${href}">
+          <i class="bi ${icon}"></i>
+          <span>${label}</span>
+        </a>
+      </li>
+    `;
+  }).join('');
+};
+
+const updateUserInfo = () => {
+  const user = getStoredUser();
+  const userBadge = document.getElementById('current-user');
+  if (userBadge) {
+    userBadge.textContent = user ? `${user.name} · ${user.role || 'Staff'}` : 'Guest';
+  }
+};
+
+const renderHeader = () => {
+  const header = document.querySelector('[data-app-header]');
+  if (!header) return;
+
+  const appName = window.__APP_CONFIG__?.appName || 'Power Tools Bus Services';
+  const user = getStoredUser();
+  const userLabel = user ? `${user.name}` : 'Guest';
+
+  header.innerHTML = `
+    <div class="d-flex align-items-center justify-content-between w-100">
+      <div>
+        <small class="eyebrow text-uppercase">Operations</small>
+        <h1 class="page-title mb-0">${appName}</h1>
+      </div>
+      <div class="header-actions d-flex align-items-center gap-2">
+        <span class="badge bg-light text-dark d-none d-md-inline-block">${userLabel}</span>
+        <button class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-bell"></i>
+        </button>
+        <button class="btn btn-primary btn-sm">
+          <i class="bi bi-plus-lg"></i> New Booking
+        </button>
       </div>
     </div>
+  `;
+};
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/config.js"></script>
-    <script src="assets/js/app.js"></script>
-  </body>
-</html>
+const updatePageMeta = () => {
+  const pageTitle = document.body.dataset.pageTitle || 'Power Tools Bus Services';
+  document.title = pageTitle;
+};
+
+const toggleMobileSidebar = () => {
+  document.querySelector('.sidebar')?.classList.toggle('show');
+};
+
+const bindMobileToggle = () => {
+  const toggle = document.getElementById('sidebarToggle');
+  if (toggle) toggle.addEventListener('click', toggleMobileSidebar);
+};
+
+const defaultAppData = {
+  busCount: 0,
+  activeBusCount: 0,
+  tripCount: 0,
+  todayBookings: 0,
+  passengerCount: 0,
+  revenue: 0,
+  pendingPayments: 0
+};
+
+const renderEmptyMetrics = () => {
+  ['metric-buses', 'metric-active-buses', 'metric-scheduled-trips', 'metric-bookings-today', 'metric-passengers', 'metric-revenue', 'metric-pending-payments'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '—';
+  });
+};
+
+const loadDashboardData = async () => {
+  const page = document.body.dataset.page;
+  if (page !== 'dashboard') return;
+
+  try {
+    const response = await fetch('/api/metrics');
+    if (!response.ok) throw new Error('Metrics endpoint unavailable');
+    const data = await response.json();
+    const safeData = { ...defaultAppData, ...data };
+
+    const busEl = document.getElementById('metric-buses');
+    const activeBusEl = document.getElementById('metric-active-buses');
+    const tripsEl = document.getElementById('metric-scheduled-trips');
+    const bookingsEl = document.getElementById('metric-bookings-today');
+    const passengersEl = document.getElementById('metric-passengers');
+    const revenueEl = document.getElementById('metric-revenue');
+    const pendingEl = document.getElementById('metric-pending-payments');
+
+    if (busEl) busEl.textContent = Number(safeData.busCount || 0).toLocaleString();
+    if (activeBusEl) activeBusEl.textContent = Number(safeData.activeBusCount || 0).toLocaleString();
+    if (tripsEl) tripsEl.textContent = Number(safeData.tripCount || 0).toLocaleString();
+    if (bookingsEl) bookingsEl.textContent = Number(safeData.todayBookings || 0).toLocaleString();
+    if (passengersEl) passengersEl.textContent = Number(safeData.passengerCount || 0).toLocaleString();
+    if (revenueEl) revenueEl.textContent = formatCurrency(safeData.revenue || 0);
+    if (pendingEl) pendingEl.textContent = formatCurrency(safeData.pendingPayments || 0);
+  } catch (error) {
+    renderEmptyMetrics();
+    console.warn('Using default empty dashboard metrics:', error);
+  }
+};
+
+const renderRows = (tbodyId, rows, columns, formatters = {}) => {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+
+  tbody.innerHTML = rows.length
+    ? rows.map((row) => {
+        const cells = columns.map((key) => {
+          const value = row[key];
+          const formatter = formatters[key];
+          return `<td>${formatter ? formatter(value, row) : value ?? ''}</td>`;
+        }).join('');
+
+        return `<tr>${cells}</tr>`;
+      }).join('')
+    : `<tr><td colspan="${columns.length}" class="text-center text-muted">No records found</td></tr>`;
+};
+
+const renderDemoTables = () => {
+  if (document.body.dataset.page === 'buses') {
+    renderRows('busesTableBody', DEMO_DATA.buses, ['registration', 'model', 'capacity', 'type', 'status'], {
+      capacity: (value) => `${value} seats`,
+      status: (value) => `<span class="badge ${value === 'Maintenance' ? 'status-warning' : 'status-active'}">${value}</span>`
+    });
+  }
+
+  if (document.body.dataset.page === 'routes') {
+    renderRows('routesTableBody', DEMO_DATA.routes, ['code', 'from', 'to', 'price', 'duration', 'status'], {
+      price: (value) => formatCurrency(value),
+      status: (value) => `<span class="badge ${value === 'Delayed' ? 'status-warning' : 'status-active'}">${value}</span>`
+    });
+  }
+
+  if (document.body.dataset.page === 'trips') {
+    renderRows('tripsTableBody', DEMO_DATA.trips, ['tripId', 'route', 'seats', 'date', 'departure', 'status'], {
+      seats: (value) => `${value} seats`,
+      status: (value) => `<span class="badge ${value === 'Delayed' ? 'status-warning' : 'status-active'}">${value}</span>`
+    });
+  }
+
+  if (document.body.dataset.page === 'bookings') {
+    renderRows('bookingsTableBody', DEMO_DATA.bookings, ['ref', 'passenger', 'route', 'seat', 'amount', 'status'], {
+      amount: (value) => formatCurrency(value),
+      status: (value) => `<span class="badge ${value === 'Pending' ? 'status-pending' : value === 'Completed' ? 'status-active' : 'status-active'}">${value}</span>`
+    });
+  }
+
+  if (document.body.dataset.page === 'passengers') {
+    renderRows('passengersTableBody', DEMO_DATA.passengers, ['name', 'phone', 'trips', 'bookings'], {
+      trips: (value) => `${value}`,
+      bookings: (value) => `${value}`
+    });
+  }
+
+  if (document.body.dataset.page === 'payments') {
+    renderRows('paymentsTableBody', DEMO_DATA.payments, ['ref', 'passenger', 'route', 'amount', 'status'], {
+      amount: (value) => formatCurrency(value),
+      status: (value) => `<span class="badge ${value === 'Pending' ? 'status-pending' : 'status-active'}">${value}</span>`
+    });
+  }
+
+  if (document.body.dataset.page === 'tickets') {
+    renderRows('ticketsTableBody', DEMO_DATA.tickets, ['ticketId', 'passenger', 'route', 'status'], {
+      status: (value) => `<span class="badge ${value === 'Issued' ? 'status-active' : 'status-warning'}">${value}</span>`
+    });
+  }
+};
+
+const bindLoginForm = () => {
+  const form = document.getElementById('loginForm');
+  if (!form) return;
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const email = (emailInput?.value || '').trim();
+    const password = passwordInput?.value || '';
+
+    if (!email || !password) {
+      alert('Please enter both email and password.');
+      return;
+    }
+
+    const config = window.__APP_CONFIG__ || {};
+    const hasSupabase = !!(window.__SUPABASE__ && config.supabaseUrl && !config.supabaseUrl.includes('YOUR_PROJECT_REF'));
+
+    try {
+      if (hasSupabase) {
+        const { data, error } = await window.__SUPABASE__.auth.signInWithPassword({ email, password });
+        if (!error && data?.user) {
+          const user = {
+            id: data.user.id,
+            name: data.user.user_metadata?.full_name || email.split('@')[0],
+            email: data.user.email,
+            role: data.user.user_metadata?.role || 'Administrator'
+          };
+          setStoredUser(user);
+          localStorage.setItem('pts_session', 'supabase');
+          window.location.href = 'dashboard.html';
+          return;
+        }
+      }
+
+      const matchedUser = DEMO_USERS.find((user) => user.email.toLowerCase() === email.toLowerCase() && user.password === password);
+      if (matchedUser) {
+        const user = {
+          id: crypto?.randomUUID ? crypto.randomUUID() : `demo-${Date.now()}`,
+          name: matchedUser.name,
+          email: matchedUser.email,
+          role: matchedUser.role
+        };
+        setStoredUser(user);
+        localStorage.setItem('pts_session', 'demo');
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
+      alert('Invalid email or password. Try admin@powertoolsbus.com / admin123');
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('Login failed. Please try again.');
+    }
+  });
+};
+
+const ensureProtectedRouteAccess = () => {
+  const token = localStorage.getItem('pts_session');
+  const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+  const protectedPages = ['dashboard.html', 'buses.html', 'routes.html', 'trips.html', 'bookings.html', 'passengers.html', 'payments.html', 'tickets.html', 'staff.html', 'drivers.html', 'reports.html', 'settings.html'];
+
+  if (!token && protectedPages.includes(currentPath)) {
+    window.location.href = 'login.html';
+  }
+};
+
+const initializeApp = () => {
+  renderSidebar();
+  renderHeader();
+  updateUserInfo();
+  updatePageMeta();
+  bindMobileToggle();
+  bindLoginForm();
+  renderDemoTables();
+  loadDashboardData();
+  ensureProtectedRouteAccess();
+};
+
+document.addEventListener('DOMContentLoaded', initializeApp);
+
+window.__APP__ = {
+  getStoredUser,
+  setStoredUser,
+  clearStoredUser,
+  formatCurrency,
+  DEMO_DATA,
+  loadDashboardData,
+  renderDemoTables
+};
+
+if (window.location.pathname.endsWith('login.html')) {
+  const user = getStoredUser();
+  if (user && localStorage.getItem('pts_session')) {
+    window.location.href = 'dashboard.html';
+  }
+}
+
+if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
+  const token = localStorage.getItem('pts_session');
+  if (token) {
+    window.location.href = 'dashboard.html';
+  }
+}
+
+window.addEventListener('storage', () => {
+  updateUserInfo();
+});
+

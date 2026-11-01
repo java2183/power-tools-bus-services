@@ -1,13 +1,76 @@
-{
-  "name": "power-tools-bus-services",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "npx serve . -l 3000",
-    "build": "echo 'Static app: no build step required.'",
-    "test": "echo 'No automated tests configured yet; configure Supabase values before deployment.'"
+const { createClient } = require('@supabase/supabase-js');
+
+const jsonResponse = (statusCode, payload) => ({
+  statusCode,
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
   },
-  "devDependencies": {
-    "serve": "^14.2.4"
+  body: JSON.stringify(payload)
+});
+
+exports.handler = async (event) => {
+  if (event.httpMethod === 'OPTIONS') {
+    return jsonResponse(200, { ok: true });
   }
-}
+
+  const url = process.env.SUPABASE_URL;
+  const anonKey = process.env.SUPABASE_ANON_KEY;
+
+  if (!url || !anonKey || url.includes('YOUR_PROJECT_REF') || anonKey.includes('YOUR_')) {
+    return jsonResponse(503, {
+      error: 'Supabase is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY to Netlify environment variables.'
+    });
+  }
+
+  try {
+    const supabase = createClient(url, anonKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
+    });
+
+    const table = event.queryStringParameters?.table || 'buses';
+    const method = event.httpMethod.toUpperCase();
+    let query = supabase.from(table);
+
+    if (method === 'GET') {
+      const { data, error } = await query.select('*').limit(25);
+      if (error) return jsonResponse(500, { error: error.message });
+      return jsonResponse(200, { data });
+    }
+
+    if (method === 'POST') {
+      const payload = event.body ? JSON.parse(event.body) : {};
+      const { data, error } = await query.insert(payload).select();
+      if (error) return jsonResponse(500, { error: error.message });
+      return jsonResponse(200, { data });
+    }
+
+    if (method === 'PUT') {
+      const payload = event.body ? JSON.parse(event.body) : {};
+      const id = event.queryStringParameters?.id;
+      if (!id) return jsonResponse(400, { error: 'Missing id query parameter.' });
+      const { data, error } = await query.update(payload).eq('id', id).select();
+      if (error) return jsonResponse(500, { error: error.message });
+      return jsonResponse(200, { data });
+    }
+
+    if (method === 'DELETE') {
+      const id = event.queryStringParameters?.id;
+      if (!id) return jsonResponse(400, { error: 'Missing id query parameter.' });
+      const { error } = await query.delete().eq('id', id);
+      if (error) return jsonResponse(500, { error: error.message });
+      return jsonResponse(200, { ok: true });
+    }
+
+    return jsonResponse(405, { error: 'Unsupported HTTP method.' });
+  } catch (error) {
+    return jsonResponse(500, { error: error.message || 'Unexpected server error.' });
+  }
+};
+
