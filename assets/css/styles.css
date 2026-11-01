@@ -1,0 +1,41 @@
+const defaultAppData = {
+  busCount: 0,
+  activeBusCount: 0,
+  tripCount: 0,
+  todayBookings: 0,
+  passengerCount: 0,
+  revenue: 0,
+  pendingPayments: 0
+};
+
+const renderEmptyMetrics = () => {
+  ['metric-buses', 'metric-active-buses', 'metric-scheduled-trips', 'metric-bookings-today', 'metric-passengers', 'metric-revenue', 'metric-pending-payments'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '—';
+  });
+};
+
+const loadDashboardData = async () => {
+  const page = document.body.dataset.page;
+  if (page !== 'dashboard') return;
+
+  try {
+    const response = await fetch('/api/metrics');
+    if (!response.ok) throw new Error('Metrics endpoint unavailable');
+    const data = await response.json();
+    const safeData = { ...defaultAppData, ...data };
+
+    document.getElementById('metric-buses').textContent = safeData.busCount.toLocaleString();
+    document.getElementById('metric-active-buses').textContent = safeData.activeBusCount.toLocaleString();
+    document.getElementById('metric-scheduled-trips').textContent = safeData.tripCount.toLocaleString();
+    document.getElementById('metric-bookings-today').textContent = safeData.todayBookings.toLocaleString();
+    document.getElementById('metric-passengers').textContent = safeData.passengerCount.toLocaleString();
+    document.getElementById('metric-revenue').textContent = `ZMW ${Number(safeData.revenue).toLocaleString()}`;
+    document.getElementById('metric-pending-payments').textContent = `ZMW ${Number(safeData.pendingPayments).toLocaleString()}`;
+  } catch (error) {
+    renderEmptyMetrics();
+    console.warn('Using default empty dashboard metrics:', error);
+  }
+};
+
+window.addEventListener('DOMContentLoaded', loadDashboardData);

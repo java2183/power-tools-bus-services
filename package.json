@@ -1,0 +1,13 @@
+{
+  "name": "power-tools-bus-services",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve . -l 3000",
+    "build": "echo 'Static app: no build step required.'",
+    "test": "echo 'No automated tests configured yet; configure Supabase values before deployment.'"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
